@@ -28,8 +28,7 @@ def api_root():
 def api_upload():
 	lang = tr.en()
 	loop = get_or_create_eventloop()
-	#suc, text = loop.run_until_complete(ocr_from_flask_blob(2, lang))
-	suc, text = (True, "Gladiator's\nIntoxication\nGoblet of Eonothem\nPyro DMG\nBonus\n46.6%\n+20\nDEF+10.9%\nElemental Mastery+37\nATK+14.0%\nCRIT DMG+7.8%\nGladiator's Finale:(3)\n2-Piece Set: ATK +18%.\n4-Piece Set: If the\nwielder of this artifact\nset uses a Sword,\nClaymore or Polearm,\nincreases their Normal\nAttack DMG by 35%.\nThe golden cup a champion\ngladiator drank from in\nancient times. It brimmed\nwith his glory for years until\nthe fateful day of. his fall.")
+	suc, text = loop.run_until_complete(ocr_from_flask_blob(2, lang))
 	if suc:
 		level, results = parse(text, lang)
 		if level == None:
@@ -123,7 +122,6 @@ def parse(text, lang=tr.en()):
 	for line in text.splitlines():
 		if not line:
 			continue
-		print("TESTING "+line+"\n")
 
 		if del_prev:
 			prev = None
@@ -134,7 +132,6 @@ def parse(text, lang=tr.en()):
 		line = unidecode(line).lower()
 		line = line.replace(':','.').replace('-','').replace('0/0','%')
 		if line.replace(' ','') in lang.ignore or bad_reg.search(line.replace(' ','')):
-			print("IGNORED "+line.replace(' ','')+"\n")
 			continue
 		if  fuzz.partial_ratio(line, unidecode(lang.piece_set).lower()) > 80 and len(line) > 4:
 			break
@@ -155,7 +152,6 @@ def parse(text, lang=tr.en()):
 			continue
 
 		extract = process.extractOne(line, list(choices))
-		print("EXTR  "+str(extract)+"\n")
 		if extract[1] <= 80:
 			extract = process.extractOne(line, list(choices), scorer=fuzz.partial_ratio)
 
