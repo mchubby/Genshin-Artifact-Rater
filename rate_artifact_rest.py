@@ -7,7 +7,8 @@ import re
 import sys
 import numpy as np
 
-from cv2 import cv2
+# not needed when querying OCR space?
+# from cv2 import cv2
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz, process
 from unidecode import unidecode
@@ -15,13 +16,19 @@ from unidecode import unidecode
 # query: curl -i 127.0.0.1:5000/upload --upload-file my-image.png
 from flask import Flask, jsonify , request as flask_request
 
+
 app = Flask(__name__)
 
+
+@app.route('/', methods=['GET'])
+def api_root():
+	return "OK"
+    
 
 @app.route('/upload', methods=['PUT'])
 def api_upload():
 	lang = tr.vi()
-	loop = asyncio.get_event_loop()
+	loop = get_or_create_eventloop()
 	suc, text = loop.run_until_complete(ocr_from_flask_blob(2, lang))
 	if suc:
 		level, results = parse(text, lang)
@@ -42,7 +49,7 @@ def api_upload():
 	return jsonify({
 		'result': 'FAIL',
 		'reason': text,
-	})
+	}), 503 if 'OCR_SPACE_API_KEY' in text else 422
 
 
 load_dotenv()
@@ -258,6 +265,19 @@ def rate(level, results, options={}, lang=tr.en()):
 	sub_score = sub_score / sub_weight * 100 if sub_weight > 0 else 100
 	print(f'Gear Score: {score:.2f}% (main {main_score:.2f}% {main_weight}, sub {sub_score:.2f}% {sub_weight})')
 	return score, main_score, main_weight, sub_score, sub_weight
+
+
+import asyncio
+
+def get_or_create_eventloop():
+	try:
+		return asyncio.get_event_loop()
+	except RuntimeError as ex:
+		if "There is no current event loop in thread" in str(ex):
+			loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(loop)
+			return asyncio.get_event_loop()
+
 
 if __name__ == '__main__':
 	if sys.version_info[0] == 3 and sys.version_info[1] >= 8 and sys.platform.startswith('win'):
