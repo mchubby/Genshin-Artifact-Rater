@@ -8,7 +8,7 @@ import sys
 import numpy as np
 
 # not needed when querying OCR space?
-# from cv2 import cv2
+from cv2 import cv2
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz, process
 from unidecode import unidecode
