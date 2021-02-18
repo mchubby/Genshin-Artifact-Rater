@@ -83,7 +83,7 @@ async def ocr_from_flask_blob(num, lang=tr.en()):
 	async with aiohttp.ClientSession() as session:
 		input_img = np.asarray(bytearray(flask_request.data), dtype="uint8")
 		flag = cv2.IMREAD_GRAYSCALE
-		if size > 8e6:  # or os.path.splitext(url)[1] == '.jpg':
+		if len(flask_request.data) > 8e6:  # or os.path.splitext(url)[1] == '.jpg':
 			flag = cv2.IMREAD_REDUCED_GRAYSCALE_2
 		posting_img = cv2.imdecode(input_img, flag)
 		_, posting_img = cv2.imencode('.png', posting_img)
