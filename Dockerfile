@@ -1,14 +1,13 @@
-FROM node:14
+# This file is used by Railway.app to deploy the application
+FROM python:3
 WORKDIR /usr/src/app
 
-RUN npm install -g pnpm
+RUN apt-get update && apt-get install -y \
+    libgl1
 
-COPY package*.json ./
-COPY pnpm-lock.yaml ./
-RUN pnpm install
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-RUN npm run build
 
-EXPOSE 5000
-CMD ["node", "dist"]
+CMD [ "python", "rate_artifact_rest.py" ]
