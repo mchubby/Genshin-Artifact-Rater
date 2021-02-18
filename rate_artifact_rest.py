@@ -7,7 +7,6 @@ import re
 import sys
 import numpy as np
 
-# not needed when querying OCR space?
 from cv2 import cv2
 from dotenv import load_dotenv
 from fuzzywuzzy import fuzz, process
@@ -34,7 +33,7 @@ def api_upload():
 		level, results = parse(text, lang)
 		if level == None:
 			level = 20
-		score, main_score, main_weight, sub_score, sub_weight = rate(level, results, {}, lang)
+		score, main_score, main_weight, sub_score, sub_weight, raw_results = rate(level, results, {}, lang)
 		return jsonify({
 			'result': 'OK',
 			'reason': '',
@@ -44,6 +43,7 @@ def api_upload():
 			'main_weight': main_weight,
 			'sub_score': sub_score,
 			'sub_weight': sub_weight,
+			'raw_results': raw_results,
 		})
 
 	return jsonify({
@@ -83,8 +83,8 @@ async def ocr_from_flask_blob(num, lang=tr.en()):
 	async with aiohttp.ClientSession() as session:
 		input_img = np.asarray(bytearray(flask_request.data), dtype="uint8")
 		flag = cv2.IMREAD_GRAYSCALE
-		# if size > 8e6 or os.path.splitext(url)[1] == '.jpg':
-			# flag = cv2.IMREAD_REDUCED_GRAYSCALE_2
+		if size > 8e6:  # or os.path.splitext(url)[1] == '.jpg':
+			flag = cv2.IMREAD_REDUCED_GRAYSCALE_2
 		posting_img = cv2.imdecode(input_img, flag)
 		_, posting_img = cv2.imencode('.png', posting_img)
 		data = aiohttp.FormData()
@@ -264,7 +264,7 @@ def rate(level, results, options={}, lang=tr.en()):
 	main_score = 100 if main_score > 99 else main_score
 	sub_score = sub_score / sub_weight * 100 if sub_weight > 0 else 100
 	print(f'Gear Score: {score:.2f}% (main {main_score:.2f}% {main_weight}, sub {sub_score:.2f}% {sub_weight})')
-	return score, main_score, main_weight, sub_score, sub_weight
+	return score, main_score, main_weight, sub_score, sub_weight, results
 
 
 import asyncio
