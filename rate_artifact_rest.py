@@ -36,6 +36,7 @@ def api_upload():
 		print(results, "foo\n\n")
 		score, main_score, main_weight, sub_score, sub_weight, raw_results = rate(level, results, {}, lang)
 		return jsonify({
+			'response_version': 1,
 			'result': 'OK',
 			'reason': '',
 			'score': score,
@@ -45,6 +46,7 @@ def api_upload():
 			'sub_score': sub_score,
 			'sub_weight': sub_weight,
 			'raw_results': raw_results,
+			'raw_ocr': text,
 		})
 
 	return jsonify({
